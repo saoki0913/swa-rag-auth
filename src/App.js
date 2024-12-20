@@ -4,25 +4,37 @@ import SideBar from "./components/SideBar";
 import TextInput from "./components/TextInput";
 import ChatArea from "./components/ChatArea";
 import ProjectPage from "./components/ProjectPage";
+import logo from "./assets/logo.png"; // ロゴ画像をインポート
 import { Box, CircularProgress, Typography, TextField, Button } from "@mui/material";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#000", // プライマリカラーを黒
+    },
+    secondary: {
+      main: "#333", // セカンダリカラー
+    },
+  },
+  typography: {
+    fontFamily: "'Roboto', sans-serif", // おしゃれなフォントを指定
+    button: {
+      textTransform: "none", // ボタンのテキストを小文字のままに
+    },
+  },
+});
 
 const MainApp = () => {
-  //状態管理
   const [chatHistory, setChatHistory] = useState([]);
   const [messages, setMessages] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState("");
 
-  const navigate = useNavigate(); // React Routerフックを使用
+  const navigate = useNavigate();
 
-  //サーバーからプロジェクト一覧を取得
   const fetchProjects = async () => {
     try {
       const response = await fetch("http://func-rag.azurewebsites.net/projects");
@@ -113,69 +125,104 @@ const MainApp = () => {
 
   return (
     <Box sx={{ display: "flex", height: "100vh", flexDirection: "column" }}>
-      {/* プロジェクト選択のみ */}
+      {/* ヘッダー */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           alignItems: "center",
-          padding: 2,
-          gap: 2,
-          borderBottom: "1px solid #ddd",
+          padding: "16px 32px",
+          backgroundColor: "#f5f5f5", // 薄いグレー背景
+          color: "#000", // 黒文字
+          borderBottom: "1px solid #ddd", // ラインを薄いグレーに変更
         }}
       >
-        <TextField
-          select
-          label="プロジェクトを選択"
-          value={selectedProject}
-          onClick={fetchProjects}
-          onChange={handleSelectProject}
-          size="small"
-          sx={{ width: "200px", minWidth: "150px" }}
-          SelectProps={{
-            native: true,
+        {/* ロゴを表示 */}
+        <img
+          src={logo}
+          alt="Company Logo"
+          style={{
+            height: "35px",
+            marginLeft: "30px",
+            display: "block",
           }}
-        >
-          <option value="" disabled></option>
-          {projects
-            .filter((project) => project && project.project_name)
-            .map((project, index) => (
+        />
+
+        {/* プロジェクト選択 */}
+        <Box sx={{ display: "flex", gap: "16px" }}>
+          <TextField
+            select
+            label="プロジェクトを選択"
+            value={selectedProject}
+            onClick={fetchProjects}
+            onChange={handleSelectProject}
+            size="small"
+            sx={{
+              backgroundColor: "#fff", // 背景を白に
+              borderRadius: "4px",
+              width: "200px",
+              minWidth: "150px",
+            }}
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="" disabled></option>
+            {projects.map((project, index) => (
               <option key={index} value={project.project_name}>
                 {project.project_name}
               </option>
             ))}
-        </TextField>
-
-        {/* 新たなページへ遷移するボタン */}
-        <Button variant="contained" onClick={() => navigate("/project")}>
-          プロジェクトページ
-        </Button>
+          </TextField>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/project")}
+            sx={{
+              backgroundColor: "#000", // ボタンを黒に
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "#333", // ホバー時を濃いグレーに
+              },
+            }}
+          >
+            プロジェクトページ
+          </Button>
+        </Box>
       </Box>
 
+      {/* メインコンテンツ */}
       <Box sx={{ display: "flex", height: "calc(100vh - 64px)" }}>
         <SideBar chatHistory={chatHistory} onSelectChat={handleSelectChat} />
         <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-          <Box sx={{ flexGrow: 1, overflowY: "auto", padding: 2 }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              overflowY: "auto",
+              padding: "16px",
+              backgroundColor: "#f9f9f9",
+              borderRadius: "8px",
+            }}
+          >
             <ChatArea messages={messages} />
           </Box>
           <Box
             sx={{
-              padding: 2,
+              padding: "16px",
               borderTop: "1px solid #ddd",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              gap: 2,
+              gap: "16px",
+              backgroundColor: "#fff",
             }}
           >
-            {isGenerating && (
-              <Box display="flex" alignItems="center" gap={1}>
+            {isGenerating ? (
+              <Box display="flex" alignItems="center" gap="8px">
                 <CircularProgress size={24} />
                 <Typography>回答生成中...</Typography>
               </Box>
-            )}
-            {!isGenerating && (
-              <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
+            ) : (
+              <Box sx={{ display: "flex", gap: "16px", width: "100%" }}>
                 <TextInput onSendMessage={handleSendMessage} />
               </Box>
             )}
@@ -186,15 +233,17 @@ const MainApp = () => {
   );
 };
 
-// ルートを管理するコンポーネント
+// ルート設定
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<MainApp />} />
-        <Route path="/project" element={<ProjectPage />} />
-      </Routes>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<MainApp />} />
+          <Route path="/project" element={<ProjectPage />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 };
 
