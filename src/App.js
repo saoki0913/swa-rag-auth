@@ -25,7 +25,7 @@ const MainApp = () => {
   //サーバーからプロジェクト一覧を取得
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost:7071/projects");
+      const response = await fetch("http://func-rag.azurewebsites.net/projects");
       const data = await response.json();
       setProjects(
         Array.isArray(data.projects) ? data.projects.filter((p) => p && p.project_name) : []
@@ -50,7 +50,7 @@ const MainApp = () => {
     setMessages((prevMessages) => [...prevMessages, questionMessage]);
 
     try {
-      const response = await fetch("http://localhost:7071/answer", {
+      const response = await fetch("http://func-rag.azurewebsites.net/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_question: text, project_name: selectedProject }),

@@ -10,7 +10,8 @@
           },
           "login": {
             "loginParameters": [
-              "prompt=login"
+              "prompt=login",
+              "response_type=id_token"
             ]
           }
         }

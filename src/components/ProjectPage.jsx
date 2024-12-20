@@ -26,7 +26,7 @@ const ProjectPage = () => {
   const fetchProjects = async () => {
     setIsUpdating(true); // 更新中の状態を管理
     try {
-      const response = await fetch("http://localhost:7071/projects");
+      const response = await fetch("http://func-rag.azurewebsites.net/projects");
       const data = await response.json();
       setProjects(
         Array.isArray(data.projects) ? data.projects.filter((p) => p && p.project_name) : []
@@ -53,7 +53,7 @@ const ProjectPage = () => {
 
     setIsRegistering(true);
     try {
-      const response = await fetch("http://localhost:7071/resist_project", {
+      const response = await fetch("http://func-rag.azurewebsites.net/resist_project", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project_name: projectName, spo_url: spoUrl }),
