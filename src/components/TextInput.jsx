@@ -33,7 +33,7 @@ const TextInput = ({ onSendMessage }) => {
       <TextField
         variant="standard"
         multiline // 複数行入力
-        rows={3} // 行数を3行分
+        rows={2} // 行数を3行分
         fullWidth
         placeholder="メッセージを入力..."
         value={inputValue}
