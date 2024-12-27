@@ -5,13 +5,15 @@ import ChatArea from "../components/ChatArea";
 import logo from "../assets/logo.png"; // ロゴ画像をインポート
 import { Box, CircularProgress, Typography, TextField, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { GlobalStyles } from '@mui/material';
 
-const MainApp = () => {
+
+const HomePage = () => {
   const [chatHistory, setChatHistory] = useState([]);//チャット履歴を格納する配列
   const [messages, setMessages] = useState([]); //現在のチャットセッションのメッセージリスト
   const [isGenerating, setIsGenerating] = useState(false);//メッセージの応答生成中かを示すフラグ
   const [projects, setProjects] = useState([]);//利用可能なプロジェクト一覧
-  const [selectedProject, setSelectedProject] = useState("");//現在選択されているプロジェクト名
+  const [selectedProject, setSelectedProject] = useState("ALL");//現在選択されているプロジェクト名
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);//サイドバーが開いているかを示すフラグ
 
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ const MainApp = () => {
   //プロジェクト一覧を取得する非同期関数
   const fetchProjects = async () => {
     try {
-      const response = await fetch("https://func-rag.azurewebsites.net/projects");
+      const response = await fetch("http://localhost:7071/projects");
       const data = await response.json();
       setProjects(
         Array.isArray(data.projects) ? data.projects.filter((p) => p && p.project_name) : []
@@ -34,6 +36,13 @@ const MainApp = () => {
     setSelectedProject(event.target.value);
   };
 
+  // メッセージ入力欄がフォーカスされたときにプロジェクト選択を確認する関数
+  const handleFocusMessageInput = () => {
+    if (!selectedProject || selectedProject === "ALL") {
+      alert("プロジェクトは選択されていませんがよろしいですか？");
+    }
+  };
+  
   // ユーザーがメッセージを送信した際に呼び出される関数
   const handleSendMessage = async (text) => {
     // selectedProjectが未選択の場合、警告を表示する．
@@ -48,7 +57,7 @@ const MainApp = () => {
 
     try {
       // APIエンドポイントにユーザーの質問を送信
-      const response = await fetch("https://func-rag.azurewebsites.net/answer", {
+      const response = await fetch("http://localhost:7071/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_question: text, project_name: selectedProject }),
@@ -82,6 +91,7 @@ const MainApp = () => {
       ]);
     } catch (error) {
       console.error("エラー: チャット応答の取得に失敗しました。", error);
+      alert("エラー: チャット応答の取得に失敗しました。");
     } finally {
       setIsGenerating(false);
     }
@@ -96,122 +106,136 @@ const MainApp = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      {/* サイドバー */}
-      <SideBar
-        chatHistory={chatHistory}
-        onSelectChat={handleSelectChat}
-        isSidebarOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
+    <div>
+      {/*Material-UIの GlobalStylesを使用し，CSSを適応*/}
+      <GlobalStyles
+          styles={{
+              html: { height: '100%' },
+              body: { height: '100%', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' },
+              '#root': { height: '100%' },
+          }}
       />
 
-      {/* ページ全体 */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column"
+      <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+        {/* サイドバー */}
+        <SideBar
+          chatHistory={chatHistory}
+          onSelectChat={handleSelectChat}
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
 
-        }}
-      >
-        {/* ヘッダー */}
-        <Box
-          sx={{
-            display: "flex",
-            height: "50px", // 固定の高さを指定
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "8px 16px",
-            backgroundColor: "#f5f5f5", // ヘッダーの背景を薄いグレーに設定
-            color: "#000",
-            borderBottom: "1px solid #ddd",
-            flexShrink: 0, // ヘッダーがスクロールの影響を受けないように
-          }}
-        >
-          <img src={logo} alt="Company Logo" style={{ height: "35px", marginLeft: "45px" }} />
-          <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <TextField
-              select
-              label="プロジェクトを選択"
-              value={selectedProject}
-              onClick={fetchProjects}
-              onChange={handleSelectProject}
-              size="small"
-              sx={{
-                backgroundColor: "#fff",
-                borderRadius: "4px",
-                width: "150px",
-                minWidth: "120px"
-              }}
-              InputLabelProps={{
-                style: { fontSize: "0.75rem" },
-              }}
-              SelectProps={{
-                native: true,
-                sx: { fontSize: "0.75rem" },
-              }}
-            >
-              <option value="" disabled></option>
-              {projects.map((project, index) => (
-                <option key={index} value={project.project_name}>
-                  {project.project_name}
-                </option>
-              ))}
-            </TextField>
-
-            <Button
-              variant="contained"
-              onClick={() => navigate("/project")}
-              sx={{
-                backgroundColor: "#333333",
-                color: "#fff",
-                fontSize: "0.85rem",
-                padding: "4px 12px",
-                minWidth: "120px",
-                "&:hover": { backgroundColor: "#333" },
-              }}
-            >
-              プロジェクトページ
-            </Button>
-          </Box>
-        </Box>
-
-       {/* メインコンテンツ */}
+        {/* ページ全体 */}
         <Box
           sx={{
             flexGrow: 1,
-            overflowY: "auto", 
-            padding: "16px",
-            backgroundColor: "white",
-            borderBottom: "none", // フッターとの境界線を削除
-          }}
-        >
-          <ChatArea messages={messages} />
-        </Box>
-
-        {/* フッター部分 */}
-        <Box
-          sx={{
-            padding: "16px",
             display: "flex",
-            // flexShrink: 0, // フッターがスクロールの影響を受けないように
-            backgroundColor: "white", // メインコンテンツと同じ背景色に統一
-            borderTop: "none", // 境界線を削除
+            flexDirection: "column"
+
           }}
         >
-          {isGenerating ? (
-            <Box display="flex" alignItems="center" gap="8px">
-              <CircularProgress size={24} />
-              <Typography>回答生成中...</Typography>
+          {/* ヘッダー */}
+          <Box
+            sx={{
+              display: "flex",
+              height: "50px", // 固定の高さを指定
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "8px 16px",
+              backgroundColor: "#f5f5f5", // ヘッダーの背景を薄いグレーに設定
+              color: "#000",
+              borderBottom: "1px solid #ddd",
+              flexShrink: 0, // ヘッダーがスクロールの影響を受けないように
+            }}
+          >
+            <img src={logo} alt="Company Logo" style={{ height: "35px", marginLeft: "45px" }} />
+            <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <TextField
+                select
+                label="プロジェクトを選択"
+                value={selectedProject}
+                onClick={fetchProjects}
+                onChange={handleSelectProject}
+                size="small"
+                sx={{
+                  backgroundColor: "#fff",
+                  borderRadius: "4px",
+                  width: "150px",
+                  minWidth: "120px"
+                }}
+                InputLabelProps={{
+                  style: { fontSize: "0.75rem" },
+                }}
+                SelectProps={{
+                  native: true,
+                  sx: { fontSize: "0.75rem" },
+                }}
+              >
+                <option value="ALL">ALL</option>
+                {projects.map((project, index) => (
+                  <option key={index} value={project.project_name}>
+                    {project.project_name}
+                  </option>
+                ))}
+              </TextField>
+
+              <Button
+                variant="contained"
+                onClick={() => navigate("/project")}
+                sx={{
+                  backgroundColor: "#333333",
+                  color: "#fff",
+                  fontSize: "0.85rem",
+                  padding: "4px 12px",
+                  minWidth: "120px",
+                  "&:hover": { backgroundColor: "#333" },
+                }}
+              >
+                プロジェクトページ
+              </Button>
             </Box>
-          ) : (
-            <TextInput onSendMessage={handleSendMessage} />
-          )}
+          </Box>
+
+        {/* メインコンテンツ */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              overflowY: "auto", 
+              padding: "16px",
+              backgroundColor: "white",
+              borderBottom: "none", // フッターとの境界線を削除
+            }}
+          >
+            <ChatArea messages={messages} />
+          </Box>
+
+          {/* フッター部分 */}
+          <Box
+            sx={{
+              padding: "16px",
+              display: "flex",
+              // flexShrink: 0, // フッターがスクロールの影響を受けないように
+              backgroundColor: "white", // メインコンテンツと同じ背景色に統一
+              borderTop: "none", // 境界線を削除
+            }}
+          >
+            {isGenerating ? (
+              <Box display="flex" alignItems="center" gap="8px">
+                <CircularProgress size={24} />
+                <Typography>回答生成中...</Typography>
+              </Box>
+            ) : (
+              <TextInput 
+                onSendMessage={handleSendMessage}
+                onFocusMessageInput={handleFocusMessageInput} // フォーカス時にプロジェクト選択の確認
+              />
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </div>
   );
 };
 
 
-export default MainApp;
+export default HomePage;
