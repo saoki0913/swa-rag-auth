@@ -36,7 +36,7 @@ const ProjectPage = () => {
   const fetchProjects = async () => {
     setIsUpdating(true);
     try {
-      const response = await fetch("http://localhost:7071/projects");
+      const response = await fetch("https://func-rag.azurewebsites.net/projects");
       const data = await response.json();
       setProjects(
         Array.isArray(data.projects) ? data.projects.filter((p) => p && p.project_name) : []
@@ -60,7 +60,7 @@ const ProjectPage = () => {
 
     try {
       //削除リクエストを送信
-      const response = await fetch("http://localhost:7071/delete_project", {
+      const response = await fetch("https://func-rag.azurewebsites.net/delete_project", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project_name: projectName }),
@@ -93,7 +93,7 @@ const ProjectPage = () => {
     setIsRegistering(true);
     setSuccessMessage(""); // メッセージをリセット
     try {
-      const response = await fetch("http://localhost:7071/resist_project", {
+      const response = await fetch("https://func-rag.azurewebsites.net/resist_project", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project_name: projectName, spo_url: spoUrl }),

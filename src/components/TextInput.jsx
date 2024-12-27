@@ -3,24 +3,14 @@ import { Box, TextField, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 
 
-const TextInput = ({ onSendMessage, selectedProject }) => {
+const TextInput = ({ onSendMessage, onFocusMessageInput }) => {
   const [inputValue, setInputValue] = useState("");
-  const [hasFocused, setHasFocused] = useState(false);
 
   const handleSend = () => {
     //入力が空白の場合は送信されません
     if (inputValue.trim() !== "") {
       onSendMessage(inputValue);
       setInputValue("");
-    }
-  };
-
-  const handleFocusMessageInput = () => {
-    if (!hasFocused) {
-      if (!selectedProject || selectedProject === "ALL") {
-        alert("プロジェクトは選択されていませんがよろしいですか？");
-      }
-      setHasFocused(true); // 1回だけ警告を表示
     }
   };
 
@@ -50,7 +40,7 @@ const TextInput = ({ onSendMessage, selectedProject }) => {
         placeholder="メッセージを入力..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        onFocus={handleFocusMessageInput} // フォーカス時の処理
+        onFocus={onFocusMessageInput} // フォーカス時に確認を表示
         sx={{
           "& .MuiInputBase-root": {
             backgroundColor: "transparent",

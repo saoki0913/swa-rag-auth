@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import SideBar from "../components/SideBar";
 import TextInput from "../components/TextInput";
 import ChatArea from "../components/ChatArea";
@@ -15,13 +15,14 @@ const HomePage = () => {
   const [projects, setProjects] = useState([]);//利用可能なプロジェクト一覧
   const [selectedProject, setSelectedProject] = useState("ALL");//現在選択されているプロジェクト名
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);//サイドバーが開いているかを示すフラグ
+  const hasDisplayedWarning = useRef(false); // 警告表示を追跡するフラグ
 
   const navigate = useNavigate();
 
   //プロジェクト一覧を取得する非同期関数
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost:7071/projects");
+      const response = await fetch("https://func-rag.azurewebsites.net/projects");
       const data = await response.json();
       setProjects(
         Array.isArray(data.projects) ? data.projects.filter((p) => p && p.project_name) : []
@@ -34,12 +35,17 @@ const HomePage = () => {
   // ドロップダウンでプロジェクトを選択した際に呼び出され,selectedProjectを更新する関数
   const handleSelectProject = (event) => {
     setSelectedProject(event.target.value);
+    hasDisplayedWarning.current = false; // プロジェクト選択時にフラグをリセット
   };
 
   // メッセージ入力欄がフォーカスされたときにプロジェクト選択を確認する関数
   const handleFocusMessageInput = () => {
     if (!selectedProject || selectedProject === "ALL") {
-      alert("プロジェクトは選択されていませんがよろしいですか？");
+      // 警告がまだ表示されていない場合のみ表示
+      if (!hasDisplayedWarning.current) {
+        alert("プロジェクトは選択されていませんがよろしいですか？");
+        hasDisplayedWarning.current = true; // フラグを設定
+      }
     }
   };
   
@@ -57,7 +63,7 @@ const HomePage = () => {
 
     try {
       // APIエンドポイントにユーザーの質問を送信
-      const response = await fetch("http://localhost:7071/answer", {
+      const response = await fetch("https://func-rag.azurewebsites.net/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_question: text, project_name: selectedProject }),
